@@ -62,6 +62,28 @@ void setup() {
 
 // loop() function -- runs repeatedly as long as board is on ---------------
 
+const int FILTER_BUFFER_SIZE = 3;
+float filterBufferLeft[FILTER_BUFFER_SIZE] = {};
+float filterBufferRight[FILTER_BUFFER_SIZE] = {};
+
+float filter(float rawValue, float* filterBuffer, int bufferSize)
+{
+  // shift values
+  for(int i=0; i<(bufferSize - 1); i++) {
+    filterBuffer[i] = filterBuffer[i+1];
+  }
+  // append value
+  filterBuffer[bufferSize-1] = rawValue;
+
+  // average
+  float sum = 0;
+  for(int i=0; i<bufferSize; i++) {
+    sum += filterBuffer[i];
+  }
+
+  return sum / bufferSize;
+}
+
 void loop() {
   int sensorValueLeft = analogRead(analogInPinLeft);
   int sensorValueRight = analogRead(analogInPinRight);
@@ -72,11 +94,14 @@ void loop() {
   float joyLeft  = min(mapFloat(distLeft,  0.1, 1.0, 1.0, 0), 1.0);
   float joyRight = min(mapFloat(distRight, 0.1, 1.0, 1.0, 0), 1.0);
 
+  float filteredLeft = filter(joyLeft, filterBufferLeft, FILTER_BUFFER_SIZE);
+  float filteredRight = filter(joyRight, filterBufferRight, FILTER_BUFFER_SIZE);
+
   dispLevel(joyLeft, joyRight);
- 
-  Serial.print(joyLeft);
+
+  Serial.print(filteredLeft);
   Serial.print(",");
-  Serial.print(joyRight);
+  Serial.print(filteredRight);
   Serial.print("\n");
 
 //  dispLevel(distRight / );
