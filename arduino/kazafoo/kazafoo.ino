@@ -1,3 +1,26 @@
+/*
+ * 通信プロトコル
+ * 
+ * Serial baud 9600
+ * 
+ * "GS": センサ取得コマンド
+ *   返答
+ *     左のセンサ値,右のセンサ値 (0.0~1.0)
+ *     example: "0.0,0.8"
+ * 
+ * "LLrrggbbnn": 左LED制御コマンド
+ *   rr: 赤 00~99
+ *   gg: 緑 00~99
+ *   bb: 青 00~99
+ *   nn: 点灯個数 00~30
+ *   
+ * "LRrrggbbnn": 右LED制御コマンド
+ *   rr: 赤 00~99
+ *   gg: 緑 00~99
+ *   bb: 青 00~99
+ *   nn: 点灯個数 00~30
+ */
+
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
@@ -48,6 +71,8 @@ float filterBufferRight[FILTER_BUFFER_SIZE] = {};
 float filter(float rawValue, float* filterBuffer, int bufferSize)
 {
   // shift values
+
+  
   for(int i=0; i<(bufferSize - 1); i++) {
     filterBuffer[i] = filterBuffer[i+1];
   }
