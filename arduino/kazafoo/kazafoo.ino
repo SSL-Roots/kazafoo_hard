@@ -48,6 +48,8 @@ void setup() {
 #endif
   // END of Trinket-specific code.
 
+  unsigned long timeoutMs = (unsigned long)1000 * 60 * 60 * 24;  // 1日（ほぼ無限にタイムアウトしないように）
+
   stripLeft.begin();           // INITIALIZE NeoPixel stripRight object (REQUIRED)
   stripLeft.show();            // Turn OFF all pixels ASAP
   stripLeft.setBrightness(50); // Set BRIGHTNESS to about 1/5 (max = 255)
@@ -57,6 +59,7 @@ void setup() {
   stripRight.setBrightness(50); // Set BRIGHTNESS to about 1/5 (max = 255)
   
   Serial.begin(9600);
+  Serial.setTimeout(timeoutMs);
 }
 
 
@@ -84,29 +87,64 @@ float filter(float rawValue, float* filterBuffer, int bufferSize)
   return sum / bufferSize;
 }
 
+float getSensorValue(int sensorPin) {
+  int sensorValue = analogRead(sensorPin);
+  float dist  = adVoltageToDistMeter(sensorValue);
+  float joy  = min(mapFloat(dist,  0.1, 1.0, 1.0, 0), 1.0);
+  return joy;
+}
+
+void setLED(Adafruit_NeoPixel* strip, uint8_t red, uint8_t green, uint8_t blue, uint8_t num) {
+  if (num > LED_COUNT)  num   = LED_COUNT;
+  uint32_t color  =  strip->Color(red, green, blue);
+    
+  strip->clear();
+  if(num > 0) {
+    strip->fill(color, 0, num);
+  }
+  strip->show();
+}
+
+void processLED(String command, boolean isLeft) {
+  if (command.length() != 10) {
+    return;
+  }
+  uint8_t red   = map(command.substring(2, 4).toInt(), 0, 99, 0, 255);
+  Serial.println(red);
+  uint8_t green = map(command.substring(4, 6).toInt(), 0, 99, 0, 255);
+  Serial.println(green);
+  uint8_t blue  = map(command.substring(6, 8).toInt(), 0, 99, 0, 255);
+  Serial.println(blue);
+  uint8_t num   = command.substring(8, 10).toInt();
+  Serial.println(num);
+  if (num > 30) num = 30;
+
+  if (isLeft) {
+    setLED(&stripLeft, red, green, blue, num);
+  } else {
+    setLED(&stripRight, red, green, blue, num);
+  }
+}
+
 void loop() {
-  int sensorValueLeft = analogRead(analogInPinLeft);
-  int sensorValueRight = analogRead(analogInPinRight);
+  String command = Serial.readStringUntil('\n');
 
-  float distLeft  = adVoltageToDistMeter(sensorValueLeft);
-  float distRight = adVoltageToDistMeter(sensorValueRight);
-
-  float joyLeft  = min(mapFloat(distLeft,  0.1, 1.0, 1.0, 0), 1.0);
-  float joyRight = min(mapFloat(distRight, 0.1, 1.0, 1.0, 0), 1.0);
-
-  float filteredLeft = filter(joyLeft, filterBufferLeft, FILTER_BUFFER_SIZE);
-  float filteredRight = filter(joyRight, filterBufferRight, FILTER_BUFFER_SIZE);
-
-  dispLevel(joyLeft, joyRight);
-
-  Serial.print(filteredLeft);
-  Serial.print(",");
-  Serial.print(filteredRight);
-  Serial.print("\n");
-
-//  dispLevel(distRight / );
-
-  delay(50);
+  if (command.startsWith("GS")) { // Get Sensor
+    float left = getSensorValue(analogInPinLeft);
+    float right = getSensorValue(analogInPinRight);
+    Serial.println("get sensor");
+    Serial.print(left);
+    Serial.print(",");
+    Serial.println(right);
+  } else if (command.startsWith("LL")) { // LED Left
+    Serial.println("LED Left");
+    processLED(command, true);
+  } else if (command.startsWith("LR")) { // LED Right
+    Serial.println("LED Right");
+    processLED(command, false);
+  } else {
+    Serial.println("Invalid Command");
+  }
 }
 
 float mapFloat(float x, float in_min, float in_max, float out_min, float out_max) {
