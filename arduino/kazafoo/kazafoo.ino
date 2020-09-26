@@ -17,8 +17,8 @@
 
 // Which pin on the Arduino is connected to the NeoPixels?
 // On a Trinket or Gemma we suggest changing this to 1:
-#define LED_PIN_LEFT     7
-#define LED_PIN_RIGHT    6
+#define LED_PIN_LEFT     13
+#define LED_PIN_RIGHT    12
 const int analogInPinLeft = A0;  // Analog input pin that the potentiometer is attached to
 const int analogInPinRight = A1;  // Analog input pin that the potentiometer is attached to
 
