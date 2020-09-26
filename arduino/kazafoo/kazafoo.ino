@@ -111,14 +111,9 @@ void processLED(String command, boolean isLeft) {
     return;
   }
   uint8_t red   = map(command.substring(2, 4).toInt(), 0, 99, 0, 255);
-  Serial.println(red);
   uint8_t green = map(command.substring(4, 6).toInt(), 0, 99, 0, 255);
-  Serial.println(green);
   uint8_t blue  = map(command.substring(6, 8).toInt(), 0, 99, 0, 255);
-  Serial.println(blue);
   uint8_t num   = command.substring(8, 10).toInt();
-  Serial.println(num);
-  if (num > 30) num = 30;
 
   if (isLeft) {
     setLED(&stripLeft, red, green, blue, num);
@@ -133,18 +128,14 @@ void loop() {
   if (command.startsWith("GS")) { // Get Sensor
     float left = getSensorValue(analogInPinLeft);
     float right = getSensorValue(analogInPinRight);
-    Serial.println("get sensor");
     Serial.print(left);
     Serial.print(",");
     Serial.println(right);
   } else if (command.startsWith("LL")) { // LED Left
-    Serial.println("LED Left");
     processLED(command, true);
   } else if (command.startsWith("LR")) { // LED Right
-    Serial.println("LED Right");
     processLED(command, false);
   } else {
-    Serial.println("Invalid Command");
   }
 }
 
