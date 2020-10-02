@@ -8,6 +8,11 @@
  *     左のセンサ値,右のセンサ値 (0.0~1.0)
  *     example: "0.0,0.8"
  * 
+ * "GF": フットスイッチ状態取得コマンド
+ *  返答
+ *    "0": スイッチ押下
+ *    "1": スイッチ無押下
+ * 
  * "LLrrggbbnn": 左LED制御コマンド
  *   rr: 赤 00~99
  *   gg: 緑 00~99
@@ -28,6 +33,7 @@
 
 #define LED_PIN_LEFT     13
 #define LED_PIN_RIGHT    12
+#define FOOT_SWITCH_PIN  11
 const int analogInPinLeft = A0;  // Analog input pin that the potentiometer is attached to
 const int analogInPinRight = A1;  // Analog input pin that the potentiometer is attached to
 
@@ -56,6 +62,8 @@ void setup() {
   stripRight.begin();           // INITIALIZE NeoPixel stripRight object (REQUIRED)
   stripRight.show();            // Turn OFF all pixels ASAP
   stripRight.setBrightness(50); // Set BRIGHTNESS to about 1/5 (max = 255)
+
+  pinMode(FOOT_SWITCH_PIN, INPUT_PULLUP);
   
   Serial.begin(9600);
   Serial.setTimeout(timeoutMs);
@@ -131,6 +139,10 @@ void loop() {
     Serial.print(left);
     Serial.print(",");
     Serial.println(right);
+  } else if (command.startsWith("GF")) { // Get Foot Switch
+    int switchValue = 0;
+    switchValue = digitalRead(FOOT_SWITCH_PIN);
+    Serial.println(switchValue);
   } else if (command.startsWith("LL")) { // LED Left
     processLED(command, true);
   } else if (command.startsWith("LR")) { // LED Right
